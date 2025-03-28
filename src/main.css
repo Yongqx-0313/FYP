@@ -1,0 +1,13 @@
+.logo{
+    max-width: 200px;
+    max-height: 120px;
+}
+.profile-link{
+    width: 100px;
+    height: fit-content;
+}
+.profile-picture{
+    max-width: 40%;
+    max-height: 40%;
+    margin-left: 18px;
+}

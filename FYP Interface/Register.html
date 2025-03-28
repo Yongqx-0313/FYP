@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign-Up Page</title>
+  <link href="../src/output.css" rel="stylesheet">
+  <script src="js/password.js"></script>
+</head>
+<body class="bg-gradient-to-r from-skyblue from-20%  to-lightcream to-80% flex items-center justify-center min-h-screen px-4">
+  <div class="w-full max-w-md bg-gray-100/[0.3] rounded-lg shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-gray-800 text-center mb-6">Sign Up</h1>
+    <form action="../php/register.php" method="post"  onsubmit="return validateForm('password', 'passwordError')">
+      <!-- Name -->
+      <div class="mb-4">
+        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+        <input type="text" id="name" name="name" 
+               class="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-2 focus:border-blue-500" 
+               placeholder="Enter your name" required>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-4">
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" id="email" name="email" 
+               class="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-2 focus:border-blue-500" 
+               placeholder="Enter your email" required>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input type="password" id="password" name="password" 
+               class="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-2 focus:border-blue-500" 
+               placeholder="Enter your password" required>
+               <div class="flex">
+                <div class="show-password">
+                  <!-- An element to toggle between password visibility -->
+                  <input type="checkbox" class="mr-2" onclick="togglePasswordVisibility(this, 'password')">Show
+                  Password
+                </div>
+              </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="mb-6">
+        <label for="confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <input type="password" id="confirm-password" name="confirm-password" 
+               class="mt-1 w-full px-4 py-2 border rounded-lg text-gray-700 focus:outline-none focus:border-2 focus:border-blue-500" 
+               placeholder="Confirm your password" required>
+               <span id="passwordError" style="color: red;"></span>
+               <div class="flex">
+                <div class="show-password">
+                  <!-- An element to toggle between password visibility -->
+                  <input type="checkbox" class="mr-2" onclick="togglePasswordVisibility(this, 'confirm-password')">Show
+                  Password
+                </div>
+              </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" 
+              class="w-full  bg-orange-400 hover:bg-orange-500 active:bg-orange-600 text-dark font-bold py-2 px-4 rounded-lg transition">
+        Sign Up
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <p class="text-sm text-gray-500 text-center mt-4">
+      <span class="font-semibold">Already have an account?</span> 
+      <a href="Log In.html" class="text-blue-500 hover:underline hover:text-blue-600 active:text-blue-700">Log in</a>
+    </p>
+  </div>
+</body>
+</html>
