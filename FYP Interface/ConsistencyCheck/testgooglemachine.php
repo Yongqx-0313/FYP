@@ -57,6 +57,9 @@
         </div>
     
     </div>
+    <!-- <a href="http://localhost:7860" target="_blank">
+        <button style="font-size: 18px; padding: 10px 20px;">Open Chatbot</button>
+    </a> -->
     <?php include 'footer.php'; ?>
 </body>
 </html>
