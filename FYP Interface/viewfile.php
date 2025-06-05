@@ -11,10 +11,10 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if (!isset($_SESSION['user'])) {
-    header('Location: Log In.html');
-    exit;
-}
+// if (!isset($_SESSION['user'])) {
+//     header('Location: Log In.html');
+//     exit;
+// }
 
 $folderID = $_GET['folder_id'];
 
@@ -103,11 +103,18 @@ $stmt->close();
             </div>
 
             <!-- File List -->
-            <div class="overflow-x-auto bg-white shadow rounded">
-                <input type="search" id="tablesearch" name="tablesearch"
-                    placeholder="Search file name"
-                    class="mb-4 flex-grow px-4 py-2 text-gray-700 rounded-full border border-black focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    oninput="filterTable()" onkeypress="return event.keyCode !== 13">
+            <div class="overflow-x-auto bg-white shadow px-2 py-1 rounded-lg">
+                <div class="flex justify-between">
+                    <div><input type="search" id="tablesearch" name="tablesearch"
+                            placeholder="Search file name"
+                            class=" mb-4 flex-grow px-4 py-2 text-gray-700 rounded-full border border-black focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            oninput="filterTable()" onkeypress="return event.keyCode !== 13"></div>
+                    <div><a href="http://127.0.0.1:5000/?folder_id=<?= $folderID ?>">
+                            <button type="button" class="mt-2 bg-lime-500 text-black px-3 py-1 rounded">Check UCD</button>
+                        </a>
+                    </div>
+                </div>
+
                 <table class="table-auto w-full text-left" id="filetable">
                     <thead class="bg-blue-600 text-white">
                         <tr>
@@ -140,11 +147,11 @@ $stmt->close();
                                         <input type="hidden" name="delete_file_id" value="<?= $file['FileID'] ?>">
                                         <button type="submit" class="bg-red-500 text-black px-3 py-1 rounded" onclick="return confirm('Delete this file?');">Delete</button>
                                     </form><br />
-                                    <a href="spelling/spelling.php?file_id=<?= $file['FileID'] ?>">
+                                    <!-- <a href="spelling/spelling.php?file_id=<?= $file['FileID'] ?>">
                                         <button type="button" class="mt-2 bg-lime-500 text-black px-3 py-1 rounded">Spelling Check</button>
                                     </a>
 
-                                    <a href="ConsistencyCheck/testgooglemachine.php"><button type="button" class="mt-2 bg-orange-500 text-black px-3 py-1 rounded">Consistency Check</button></a>
+                                    <a href="ConsistencyCheck/testgooglemachine.php"><button type="button" class="mt-2 bg-orange-500 text-black px-3 py-1 rounded">Consistency Check</button></a> -->
                                 </td>
                             </tr>
                         <?php endforeach; ?>
