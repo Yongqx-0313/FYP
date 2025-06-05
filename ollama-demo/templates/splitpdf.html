@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart PDF Splitter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@latest/dist/tesseract.min.js"></script>
+  <link href="https://unpkg.com/intro.js/introjs.css" rel="stylesheet">
+  <link href="https://unpkg.com/intro.js/themes/introjs-modern.css" rel="stylesheet">
+</head>
+
+
+<body class="transition-colors duration-500 bg-gradient-to-b from-yellow-100 to-yellow-50 dark:from-gray-900 
+dark:to-black min-h-screen font-sans text-gray-800 dark:text-white">
+
+  <!-- Header -->
+  <header class="bg-yellow-400 p-6 shadow-md text-center dark:bg-gray-800">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-yellow-500">📄 Smart PDF Split & Diagram Detection</h1>
+    <p class="text-sm text-gray-700 mt-1 dark:text-yellow-500">Upload a PDF, preview pages, detect use case diagrams, and download selected pages.</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-5xl mx-auto p-6 dark:text-white">
+    <!-- Upload & Actions -->
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6 space-y-4 dark:bg-gray-700 dark:text-white">
+      <!--<input type="file" id="pdfFile" accept="application/pdf" class="block w-full border p-2 rounded border-gray-300" />-->
+      <!-- Custom File Upload Box -->
+     <div 
+      id="drop-area" 
+      class="relative bg-orange-400 text-white text-center border-2 border-dashed border-white rounded-lg p-10 cursor-pointer drop-area"
+      ondragover="event.preventDefault()"
+      ondrop="handleDrop(event)" 
+     >
+      <div class="flex flex-col items-center justify-center">
+        <i class="fas fa-file-pdf fa-3x mb-4"></i>
+        <span class="text-lg font-semibold">CHOOSE FILES</span>
+        <span class="text-sm mt-1 text-white/80">or drop files here</span>
+      </div>
+      
+      <!-- Hidden file input with correct event handler -->
+      <input 
+        type="file" 
+        id="pdfFile" 
+        accept="application/pdf"
+        class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer" 
+      />
+    </div>
+    
+    <!-- Display file name -->
+    <p id="selected-file-name" class="text-center mt-2 text-sm text-gray-700 font-medium dark:text-white selected-file"></p>
+    
+      <div class="flex flex-wrap gap-4 mt-2 justify-between">
+        <div class="flex gap-[3.5px]">
+        <button onclick="uploadPDF()" id="previewButton" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 active:bg-blue-700" title="Preview Pages button">
+          <i class="fas fa-eye"></i> Preview Pages
+        </button>
+        <button onclick="detectUseCasePages()" id="detectButton" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 active:bg-purple-700" 
+        title="Detect Use Case Diagram button" >
+          <i class="fas fa-search"></i> Detect UCD
+        </button>
+        <button onclick="extractImagesWithOCR()" id="ocrButton" class="bg-lime-500 text-white px-4 py-2 rounded hover:bg-lime-600 active:bg-lime-700 flex items-center" title="OCR button">
+          <img src="{{ url_for('static', filename='images/scan-text.png') }}" alt="Scan Icon" class=" w-5 h-5 mr-1" /> OCR
+        </button> 
+        <button onclick="compareWithRequirement()" id="compareButton" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 active:bg-yellow-700" 
+        title="Compare Button(with your requirement text write in pdf)">
+        <i class="fas fa-code-compare"></i>
+          Compare with Description</button>
+<button onclick="askGptForSuggestions()" 
+        id="gptSuggestButton" 
+        class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 active:bg-gray-900 dark:bg-white dark:text-black"
+        title="Ask GPT-4 to analyze logic and suggest improvements">
+  <i class="fa-solid fa-robot"></i> GPT Suggestion
+</button>
+
+        </div>
+        <button onclick="clearAll()" id="clearButton" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 active:bg-red-800" title="Clear All button">
+          <i class="fas fa-trash-alt"></i>
+        </button>     
+      </div>
+      <div id="ocr-results" class="mt-6 space-y-4"></div>
+      <div id="compare-result" class="mt-6 space-y-4"></div>
+  <div id="gpt-response" class="mt-6 text-sm"></div>
+
+      <div id="embedded-images" class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4"></div>
+      <div id="detected-page-info" class="text-green-700 font-semibold mt-2 dark:text-green-300"></div>
+    </div>
+
+
+    <!-- Loading Spinner -->
+    <div id="loading-indicator" style="display:none;" class="text-center my-6">
+      <i class="fas fa-cloud fa-3x fa-spin text-gray-700 dark:text-white"></i>
+      <p id="loading-text" class="text-gray-700 font-medium mt-2 dark:text-white">Processing...</p>
+    </div>
+
+    <div id="sort-controls" class="flex gap-4 mb-4" style="display: none;">
+      <button type="button" onclick="sortThumbnails('asc')" class="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded 
+      dark:bg-yellow-500 dark:text white dark:hover:bg-yellow-600 dark:active:bg-yellow-700">
+        🔼 Sort Ascending
+      </button>
+      <button type="button" onclick="sortThumbnails('desc')" class="bg-gray-200 hover:bg-gray-300 active:bg-gray-400 px-3 py-1 rounded 
+      dark:bg-yellow-500 dark:text white dark:hover:bg-yellow-600 dark:active:bg-yellow-700">
+        🔽 Sort Descending
+      </button>
+    </div>    
+
+    
+    <!-- Page Preview & Split -->
+    <form id="splitForm" style="display:none;" onsubmit="splitPDF(event)">
+      <div id="page-count" class="font-semibold mb-4"></div>
+      <div id="thumbnails" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      <div class="text-right mt-6">
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 active:bg-green-800">
+          <i class="fas fa-download"></i> Download Selected Pages
+        </button>
+      </div>
+    </form>
+
+<div class="mt-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md space-y-3">
+  <div class="flex items-start space-x-2">
+    <svg class="w-6 h-6 flex-shrink-0 mt-1 text-yellow-600" fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01M12 5a7 7 0 100 14 7 7 0 000-14z"/>
+    </svg>
+    <div class="text-sm mt-1">
+      <!-- SUMMARY VERSION -->
+<div id="disclaimer-summary" class="text-sm">
+  <p>
+    <strong>Notice:</strong> This tool uses AI to check consistency between use case diagrams and text. Some errors may not be detected.
+  </p>
+  <p class="mt-1 text-red-700 font-medium">
+    ⚠️ Always manually verify results — this tool is an aid, not a replacement for human review.
+  </p>
+</div>
+     <p id="disclaimer-detailed" class="text-sm mt-1 hidden">
+    <span class="font-bold">Notice:</span> The <strong>AI-Driven Use Case Diagram Consistency Checker</strong>  
+    is designed to help identify inconsistencies between a use case diagram and its textual description using automated detection techniques.
+    <span id="disclaimer-extra" class="hidden transition-all duration-300">However, no automated system can be 100% reliable. 
+      Analysis may be incomplete or inaccurate, especially when detecting diagram lines 
+      (e.g., associations, extensions, inclusions), labels, and textual content. 
+      Accuracy may be affected by image clarity, diagram complexity, and formatting variations.
+      <br/>
+      <br/>
+    <span class="font-semibold">
+      Manual verification is strongly recommended to ensure correctness and completeness.
+    </span>
+    <br/>
+    <br/>
+    <span class="text-red-700 font-medium">
+      ⚠️ Disclaimer: This tool is intended to assist, not replace, human judgment. 
+      Do not rely solely on its results to make decisions that affect a person's academic or career development.
+    </span>
+    </span>
+      <button onclick="toggleDisclaimer()" class="text-blue-600 text-sm mt-2 ml-1 underline" id="disclaimer-toggle-btn">
+      See More
+      </button>
+    <!-- everything before "However" stays visible -->
+  </p>
+  <!-- This part is hidden/shown based on the button -->
+  <!-- Toggle Button -->
+
+</div>
+
+  </div>
+</div>
+<p class="text-xs text-gray-500 text-right">Press <kbd>S</kbd> or <kbd>C</kbd> to toggle panels, <kbd>Esc</kbd> to hide all.</p>
+
+  </main>
+
+
+<!-- Settings Panel -->
+<div id="settings" 
+     class="fixed bottom-20 left-4 w-1/6 h-auto border rounded-xl shadow-2xl overflow-hidden z-50 bg-white hidden">
+  
+  <div class="p-2 dark:bg-black">
+    <div class="p-2">
+    <label class="flex items-center gap-2 dark:text-white">
+      <input type="checkbox" name="enableLineCheck" id="enableLineCheck" />
+      <span>Enable Line Detection & Actor-Use Case Analysis</span>
+    </label>
+  </div>
+    <div class="p-2">
+  <label class="flex items-center gap-2 dark:text-white">
+    <input type="checkbox" id="darkModeToggle" />
+    <span>Enable Dark Mode</span>
+  </label>
+</div>
+    <div class="p-2">
+  <label class="flex items-center gap-2 dark:text-white">
+    <input type="checkbox" id="UpperCaseToggle" />
+    <span>Ignore Uppercase error</span>
+  </label>
+</div>
+<div class="p-2">
+  <label class="flex items-center gap-2 dark:text-white">
+    <input type="checkbox" id="WhitespaceToggle" />
+    <span>Ignore whitespace mistakes</span>
+  </label>
+</div>
+<div class="mb-3">
+  <label class="text-sm font-medium dark:text-white">Disclaimer View:</label>
+  <select id="disclaimerMode" onchange="updateDisclaimer()" class="text-black ml-2 border rounded px-2 py-1 text-sm dark:bg-black dark:text-white">
+    <option value="summary" class="text-black dark:text-white">Summary</option>
+    <option value="full" class=" text-black dark:text-white">Detailed</option>
+  </select>
+</div>
+<div class="p-2 text-right">
+  <button
+    onclick="restartTutorial()"
+    class="inline-flex items-center gap-2 bg-blue-100 text-blue-700 font-medium text-sm px-4 py-2 rounded-full shadow hover:bg-blue-200 hover:text-blue-800 transition-all duration-200"
+  >
+    <i class="fa-solid fa-rotate-left"></i>
+    Show Tutorial Again
+  </button>
+</div>
+
+
+  </div>
+</div>
+
+<!-- Toggle Button -->
+<button id="toggleSettingsBtn" onclick="toggleSetting()" title="Settings"
+        class="fixed bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-full z-50 shadow-md bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600">
+  <i class="fa-solid fa-gears font-extrabold text-xl  text-black dark:text-white"></i>
+</button>
+
+
+<!-- Floating Chatbot Widget -->
+<div id="chatbot-widget"
+     class="fixed bottom-20 right-4 w-[370px] h-[500px] border rounded-xl shadow-2xl overflow-hidden z-50">
+  <iframe src="http://127.0.0.1:7860/"
+          class="w-full h-full border-0"
+          title="Chatbot"></iframe>
+</div>
+<!-- Toggle Chatbot Button -->
+<button id="toggleChatBtn" onclick="toggleChat()" title="AI UCD Chatbot" data-hint="Click here to chat with AI and ask about use case diagram !" data-hintPosition="middle-right"
+        class="fixed bottom-4 right-4 text-lg font-bold bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-black px-4 py-2 rounded-full z-50 shadow-md dark:text-white">
+  💬 Chat
+</button>
+  <!-- Scripts -->
+
+</body>
+</html>
+<!--<pre class="whitespace-pre-wrap bg-gray-100 p-2 rounded mt-2 text-sm">${result.text}</pre>-->
+
+<script src="{{ url_for('static', filename='js/uploadPDF.js') }}"></script>
+<script src="{{ url_for('static', filename='js/splitpdf.js') }}"></script>
+<script src="{{ url_for('static', filename='js/toggleSection.js') }}"></script>
+<script src="{{ url_for('static', filename='js/darkMode.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sortThumbnails.js') }}"></script>
+<script src="{{ url_for('static', filename='js/estimatedtimer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/detectUCD.js') }}"></script>
+<script src="{{ url_for('static', filename='js/OCR.js') }}"></script>
+<script src="{{ url_for('static', filename='js/clearAll.js') }}"></script>
+<script src="{{ url_for('static', filename='js/compareDoc.js') }}"></script>
+<script src="https://unpkg.com/intro.js/intro.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Only run automatically if tutorialSeen is NOT set
+  if (!localStorage.getItem('tutorialSeen')) {
+    runTutorial(true); // auto-run mode
+  }
+});
+
+function runTutorial(saveFlag) {
+  introJs().setOptions({
+    nextLabel: 'Next →',
+    prevLabel: '← Back',
+    skipLabel: '&#10006;',
+    doneLabel: 'Finish',
+    steps: [
+      {
+        intro: "Welcome to the UCD Checker website. This is an AI-Driven Use Case Diagram Consistency Checker"
+      },
+      {
+        element: document.querySelector('.drop-area'),
+        intro: "Upload your PDF file here by dragging and dropping, or click to select a file.",
+        position: "top"
+      },
+      {
+        element: document.querySelector('#previewButton'),
+        intro: "Click this button to preview all the pages within your uploaded PDF.",
+        position: "right"
+      },
+      {
+        element: document.querySelector('#detectButton'),
+        intro: "Click here to automatically detect the page that contains the use case diagram using AI.",
+        position: "right"
+      },
+      {
+        element: document.querySelector('#ocrButton'),
+        intro: "Once the diagram page is detected, click this button to extract actors, use cases, and relationships using OCR.",
+        position: "right"
+      },
+      {
+        element: document.querySelector('#compareButton'),
+        intro: "Click here to compare the extracted diagram elements with the written requirements in your document.",
+        position: "right"
+      },
+      {
+        element: document.querySelector('#gptSuggestButton'),
+        intro: "You can optionally click this button to get suggestion or improvemnt (about your use case diagram) that given by AI.",
+        position: "right"
+      },
+      {
+        element: document.querySelector('#clearButton'),
+        intro: "Use this button to clear the current session and upload a new file for analysis.",
+        position: "right"
+      }
+    ],
+    showProgress: true,
+    showBullets: false,
+    disableInteraction: true
+  }).oncomplete(() => {
+    alert("🎉 Tutorial completed! You're ready to go.");
+    if (saveFlag) {
+      localStorage.setItem('tutorialSeen', 'true');
+    }
+  }).onexit(() => {
+    // Also save if user exits early (skip)
+    if (saveFlag) {
+      localStorage.setItem('tutorialSeen', 'true');
+    }
+  }).start();
+}
+  introJs().addHints();
+// Manual restart – does NOT save as seen again
+function restartTutorial() {
+  localStorage.removeItem('tutorialSeen');
+  runTutorial(false);
+}
+</script>
+<script src="https://js.puter.com/v2/"></script>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+async function downloadPDFPerPage() {
+  const { jsPDF } = window.jspdf;
+
+  if (!lastComparisonResults || lastComparisonResults.length === 0) {
+    alert("No results to export.");
+    return;
+  }
+
+  const folderId = new URLSearchParams(window.location.search).get("folder_id");
+
+  lastComparisonResults.forEach((res) => {
+    const doc = new jsPDF();
+    let y = 10;
+
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Use Case Diagram vs Document Report`, 10, y);
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.setFont("Helvetica", "bold");
+    doc.text(`📄 Page ${res.page}`, 10, y);
+    y += 8;
+
+    doc.setFont("Helvetica", "normal");
+    doc.text("Paragraph:", 10, y);
+    y += 6;
+    const paraLines = doc.splitTextToSize(res.paragraph || "-", 180);
+    doc.text(paraLines, 10, y);
+    y += paraLines.length * 6;
+
+    doc.text(`Actors from Document: ${res.expected_actors.join(", ") || "-"}`, 10, y); y += 6;
+    doc.text(`Actors from Diagram: ${res.ocr_actors.join(", ") || "-"}`, 10, y); y += 6;
+
+    doc.text(`Use Cases from Document: ${res.expected_usecases.join(", ") || "-"}`, 10, y); y += 6;
+    doc.text(`Use Cases from Diagram: ${res.ocr_usecases.join(", ") || "-"}`, 10, y); y += 6;
+
+    if (res.note) {
+      doc.setTextColor(255, 0, 0);
+      const noteLines = doc.splitTextToSize(`Note: ${res.note}`, 180);
+      doc.text(noteLines, 10, y);
+      doc.setTextColor(0, 0, 0);
+      y += noteLines.length * 6;
+    }
+
+    if (res.paragraph_issues?.length || res.ocr_usecase_issues?.length) {
+      doc.setFont("Helvetica", "bold");
+      doc.text("Issues:", 10, y);
+      y += 6;
+      doc.setFont("Helvetica", "normal");
+      const issues = [...res.paragraph_issues, ...res.ocr_usecase_issues];
+      issues.forEach(issue => {
+        let line = `(${issue.source}) ${issue.type}: ${issue.word || issue.error} → Suggest: ${issue.suggestion || issue.suggestions?.join("/")}`;
+        let wrap = doc.splitTextToSize(line, 180);
+        doc.text(wrap, 10, y);
+        y += wrap.length * 6;
+      });
+    }
+
+    if (res.categorized && Object.keys(res.categorized).length) {
+      doc.setFont("Helvetica", "bold");
+      doc.text("OCR Mapping:", 10, y);
+      y += 6;
+      doc.setFont("Helvetica", "normal");
+      Object.entries(res.categorized).forEach(([actor, usecases]) => {
+        doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
+        y += 6;
+      });
+    }
+
+    if (res.doc_actor_usecase_map && Object.keys(res.doc_actor_usecase_map).length) {
+      doc.setFont("Helvetica", "bold");
+      doc.text("Document Mapping:", 10, y);
+      y += 6;
+      doc.setFont("Helvetica", "normal");
+      Object.entries(res.doc_actor_usecase_map).forEach(([actor, usecases]) => {
+        doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
+        y += 6;
+      });
+    }
+
+    // ✅ Save as blob and upload
+    const filename = `Page_${res.page}_Report.pdf`;
+
+const blob = doc.output("blob");  // ✅ 直接同步获取 blob
+const formData = new FormData();
+formData.append("custom-file-upload", blob, filename);
+
+fetch(`http://127.0.0.1:5000/upload-ucd?folder_id=${folderId}`, {
+  method: "POST",
+  body: formData,
+})
+  .then(res => res.json())
+  .then(data => {
+    console.log(`✅ Report saved for ${filename}:`, data);
+    alert(`✅ Report uploaded for Page ${res.page}`);
+  })
+  .catch(err => {
+    console.error("❌ Failed to upload PDF report", err);
+  });
+
+
+  });
+}
+
+</script>
+
+<script>
+document.getElementById('pdfFile').addEventListener('change', async function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const folderId = new URLSearchParams(window.location.search).get("folder_id") || "default";
+
+  const formData = new FormData();
+  formData.append("custom-file-upload", file); // ✅ 名字对上 PHP 的 $_FILES
+
+  try {
+    const res = await fetch(`http://127.0.0.1:5000/upload-ucd?folder_id=${folderId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    console.log("✅ Upload Response:", data);
+
+    if (data.phpStatus === 200) {
+      alert("✅ Uploaded successfully into Folder ID " + folderId);
+    } else {
+      alert("⚠️ Upload failed:\n" + data.phpResponse);
+    }
+  } catch (err) {
+    alert("❌ Upload failed. Please try again.");
+    console.error(err);
+  }
+});
+</script>

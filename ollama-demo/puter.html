@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <script src="https://js.puter.com/v2/"></script>
+    <img src="https://i.imgur.com/7jNEApp.png" style="display:block;">
+    <script>
+        puter.print("Analyzing local image...");
+        puter.ai.chat("Give suggestion based on the result, also check logic error for the extracted text,for example if got any actor or use case put in a not make sense place. e.g. chef actor have use case serve customer or count money, also help user to check the line connection suitable or not for example, this use case a include use case b suitable or not, need to use extends or not or vice versa)", "https://i.imgur.com/7jNEApp.png")
+              .then(puter.print);
+    </script>
+</body>
+</html>
