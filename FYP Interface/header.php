@@ -1,6 +1,6 @@
-<header class="sticky top-0 bg-gray-800 text-white shadow ">
+<header class="sticky top-0 bg-yellow-400 text-black shadow ">
   <div class="container mx-auto px-4 py-2 flex flex-col justify-between items-center md:flex-row">
-    <img src="img/UCompare_Black--.png" alt="icon" class="logo">
+    <img src="img/UCompare1.png" alt="icon" class="logo">
     <div class="flex items-center">
       <nav>
         <a href="Main.php" class="mx-2 hover:text-gray-300">Home</a>

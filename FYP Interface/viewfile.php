@@ -86,21 +86,21 @@ $stmt->close();
     <title>Files in Folder</title>
 </head>
 
-<body>
+<body class="transition-colors duration-500 bg-gradient-to-b from-yellow-100 to-yellow-50">
     <!-- Header Section -->
     <?php include 'header.php'; ?>
-    <section class="py-16">
-        <div class="container mx-auto px-4">
+    <section class="py-16 ">
+        <div class="container mx-auto px-4 ">
             <h2 class="text-3xl font-bold mb-6">Files</h2>
 
             <!-- File Upload Form -->
-            <div class="mb-6">
+            <!-- <div class="mb-6">
                 <form action="" method="POST" enctype="multipart/form-data" class="bg-white shadow rounded p-4">
                     <label for="custom-file-upload" class="block text-lg font-semibold mb-2">Upload File:</label>
                     <input type="file" name="custom-file-upload" id="custom-file-upload" class="block w-full mb-4 border border-gray-300 rounded p-2">
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Upload</button>
                 </form>
-            </div>
+            </div> -->
 
             <!-- File List -->
             <div class="overflow-x-auto bg-white shadow px-2 py-1 rounded-lg">

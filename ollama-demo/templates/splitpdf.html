@@ -17,10 +17,28 @@
 dark:to-black min-h-screen font-sans text-gray-800 dark:text-white">
 
   <!-- Header -->
-  <header class="bg-yellow-400 p-6 shadow-md text-center dark:bg-gray-800">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-yellow-500">📄 Smart PDF Split & Diagram Detection</h1>
-    <p class="text-sm text-gray-700 mt-1 dark:text-yellow-500">Upload a PDF, preview pages, detect use case diagrams, and download selected pages.</p>
-  </header>
+  <header class="sticky top-0 bg-yellow-400 text-black shadow dark:bg-gray-800">
+  <div class="container mx-auto px-4 py-2 flex flex-col justify-between items-center md:flex-row">
+    
+    <img src="{{ url_for('static', filename='images/UCompare1.png') }}" alt="Scan Icon" class="max-w-[200px] max-h-[120px]" />
+    <div class="flex items-center">
+      <nav>
+        <a href="Main.php" class="mx-2 hover:text-gray-300">Home</a>
+        <a href="#features" class="mx-2 hover:text-gray-300">Features</a>
+        <a href="#how-it-works" class="mx-2 hover:text-gray-300">How It Works</a>
+      </nav>
+      <div class="flex flex-col md:flex-row">
+      <a href="../../../FYP Interface/Profile.php" class="profile-link" style="width: 100px; height: fit-content;">
+          
+          <img src="{{ url_for('static', filename='images/studentprofile.png') }}" alt="profile-picture" class="rounded-full border-2 border-white-300 shadow-lg w-full h-full object-cover profile-picture" style="max-width: 40%; max-height: 40%; margin-left: 18px;"/>
+          <!-- <i class="fa-solid fa-user text-2xl" ></i> -->
+        </a>
+      <a href="Log In.html"><button class="mx-2 bg-white text-gray-800 px-4 py-2 rounded shadow hover:bg-blue-300">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>Log Out</button></a>
+      </div>
+    </div>
+  </div>
+</header>
 
   <!-- Main Content -->
   <main class="max-w-5xl mx-auto p-6 dark:text-white">
@@ -223,7 +241,7 @@ dark:to-black min-h-screen font-sans text-gray-800 dark:text-white">
 
 <!-- Toggle Button -->
 <button id="toggleSettingsBtn" onclick="toggleSetting()" title="Settings"
-        class="fixed bottom-4 left-4 bg-blue-600 text-white px-4 py-2 rounded-full z-50 shadow-md bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600">
+        class="fixed bottom-4 left-4 text-white px-4 py-2 rounded-full z-50 shadow-md bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600">
   <i class="fa-solid fa-gears font-extrabold text-xl  text-black dark:text-white"></i>
 </button>
 

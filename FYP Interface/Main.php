@@ -41,12 +41,12 @@ $stmt->close();
   <title>AI-Driven Use Case Diagram Consistency Checker</title>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body class="transition-colors duration-500 bg-gradient-to-b from-yellow-100 to-yellow-50 font-sans">
   <!-- Header -->
   <?php include 'header.php' ?>
 
   <!-- Hero Section -->
-  <section class="bg-gray-300 text-black py-20">
+  <section class="text-black py-20">
     <div class="container mx-auto px-4 text-center">
       <h2 class="text-4xl font-extrabold mb-4">Simplify Consistency Checking</h2>
       <p class="text-lg mb-6">Automatically validate your use case diagrams against written requirements with AI-powered precision.</p>
@@ -57,7 +57,7 @@ $stmt->close();
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-16 bg-gray-50">
+  <section id="features" class="py-16">
     <div class="container mx-auto px-4 text-center">
       <h3 class="text-3xl font-bold mb-6">Features</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -137,7 +137,7 @@ $stmt->close();
   </section>
 
   <!-- How It Works Section -->
-  <section id="how-it-works" class="py-16 bg-white">
+  <section id="how-it-works" class="py-16">
     <div class="container mx-auto px-4">
       <h3 class="text-3xl font-bold mb-6 text-center">How It Works</h3>
       <div class="flex flex-col md:flex-row items-center gap-10">
