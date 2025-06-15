@@ -71,7 +71,10 @@ async function extractImagesWithOCR() {
          if (result.issues && result.issues.length > 0) {
             html += `<div class="mt-2 text-red-600"><strong>🔴 Issues Detected:</strong><ul>`;
             result.issues.forEach(issue => {
-               html += `<li>• <strong>${issue.label}</strong>: ${issue.reason} (confidence: ${issue.confidence.toFixed(2)})</li>`;
+               html += `<li>
+                     • <strong>${issue.label}</strong>: ${issue.reason}(confidence: ${issue.confidence.toFixed(2)})
+                     ${issue.suggestion ? `<br/><span class="text-green-700"><b>Suggestion:</b>${issue.suggestion}</span>` : ''}
+                  </li>`;
             });
             html += `</ul></div>`;
          }

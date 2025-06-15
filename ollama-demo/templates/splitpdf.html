@@ -371,17 +371,17 @@ async function downloadPDFPerPage() {
     const doc = new jsPDF();
     let y = 10;
 
-    doc.setFont("Helvetica", "bold");
+    doc.setFont("Arial", "bold");
     doc.setFontSize(14);
     doc.text(`Use Case Diagram vs Document Report`, 10, y);
     y += 10;
 
     doc.setFontSize(12);
-    doc.setFont("Helvetica", "bold");
+    doc.setFont("Arial", "bold");
     doc.text(`📄 Page ${res.page}`, 10, y);
     y += 8;
 
-    doc.setFont("Helvetica", "normal");
+    doc.setFont("Arial", "normal");
     doc.text("Paragraph:", 10, y);
     y += 6;
     const paraLines = doc.splitTextToSize(res.paragraph || "-", 180);
@@ -403,10 +403,10 @@ async function downloadPDFPerPage() {
     }
 
     if (res.paragraph_issues?.length || res.ocr_usecase_issues?.length) {
-      doc.setFont("Helvetica", "bold");
+      doc.setFont("Arial", "bold");
       doc.text("Issues:", 10, y);
       y += 6;
-      doc.setFont("Helvetica", "normal");
+      doc.setFont("Arial", "normal");
       const issues = [...res.paragraph_issues, ...res.ocr_usecase_issues];
       issues.forEach(issue => {
         let line = `(${issue.source}) ${issue.type}: ${issue.word || issue.error} → Suggest: ${issue.suggestion || issue.suggestions?.join("/")}`;
@@ -417,10 +417,10 @@ async function downloadPDFPerPage() {
     }
 
     if (res.categorized && Object.keys(res.categorized).length) {
-      doc.setFont("Helvetica", "bold");
+      doc.setFont("Arial", "bold");
       doc.text("OCR Mapping:", 10, y);
       y += 6;
-      doc.setFont("Helvetica", "normal");
+      doc.setFont("Arial", "normal");
       Object.entries(res.categorized).forEach(([actor, usecases]) => {
         doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
         y += 6;
@@ -428,10 +428,10 @@ async function downloadPDFPerPage() {
     }
 
     if (res.doc_actor_usecase_map && Object.keys(res.doc_actor_usecase_map).length) {
-      doc.setFont("Helvetica", "bold");
+      doc.setFont("Arial", "bold");
       doc.text("Document Mapping:", 10, y);
       y += 6;
-      doc.setFont("Helvetica", "normal");
+      doc.setFont("Arial", "normal");
       Object.entries(res.doc_actor_usecase_map).forEach(([actor, usecases]) => {
         doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
         y += 6;

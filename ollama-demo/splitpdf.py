@@ -186,17 +186,44 @@ def extract_images_and_ocr():
     doc = fitz.open(stream=file.read(), filetype="pdf")
     extracted_results = []
 
-    error_labels = {
-        "Incorrect Association Lines": "Line violates UML association rule",
-        "wrong_extends_line": "Line drawn incorrectly, possibly drawn in no dotted line or wrong arrow style",
-        "wrong_include_line": "Line drawn incorrectly, possibly drawn in no dotted line or wrong arrow style",
-        "Incorrect Use Case": "Use case shape not following UML convention",
-        "IncorrectUse Case Diagram Title": "Title format invalid or missing",
-        "IncorrectUse_Case_Boundary": "Use case boundary drawn incorrectly, possibly contains non-UML elements",
-        "Incorrect_Actor": "Actor not drawn using proper UML actor style",
-        "Wrong Position Use Case Diagram Title": "Title not placed inside use case boundary",
-        "Line with no label": "Line has no label; possibly an incomplete relationship",
+error_labels = {
+    "Incorrect Association Lines": {
+        "reason": "Line violates UML association rule",
+        "suggestion": "Ensure association lines are solid, straight without any arrow, and clearly link actors to use cases."
+    },
+    "wrong_extends_line": {
+        "reason": "Line drawn incorrectly, possibly drawn in no dotted line or wrong arrow style",
+        "suggestion": "Use a dotted line with a hollow arrowhead for extend relationships."
+    },
+    "wrong_include_line": {
+        "reason": "Line drawn incorrectly, possibly drawn in no dotted line or wrong arrow style",
+        "suggestion": "Use a dotted line with a closed arrowhead pointing to the included use case."
+    },
+    "Incorrect Use Case": {
+        "reason": "Use case shape not following UML convention",
+        "suggestion": "Use oval shapes for use cases according to UML standards."
+    },
+    "IncorrectUse Case Diagram Title": {
+        "reason": "Title format invalid or missing",
+        "suggestion": "Add a system title like 'Student Registration System' centered inside the boundary."
+    },
+    "IncorrectUse_Case_Boundary": {
+        "reason": "Use case boundary drawn incorrectly, possibly contains non-UML elements",
+        "suggestion": "Draw a rectangular boundary to enclose all use cases and place the system title inside."
+    },
+    "Incorrect_Actor": {
+        "reason": "Actor not drawn using proper UML actor style",
+        "suggestion": "Use stick figure or proper labeled icon to represent actor."
+    },
+    "Wrong Position Use Case Diagram Title": {
+        "reason": "Title not placed inside use case boundary",
+        "suggestion": "Move the system title inside the use case boundary rectangle and placed it at the center top."
+    },
+    "Line with no label": {
+        "reason": "Line has no label; possibly an incomplete relationship",
+        "suggestion": "Add appropriate labels like 'include', 'extend', or actor-use case association."
     }
+}
     enable_line_check = request.form.get("enableLineCheck") == "true" or request.form.get("enableLineCheck") == "on"
 
     for page_num in page_numbers:
@@ -313,7 +340,22 @@ def extract_images_and_ocr():
                         diagram_titles.append(ocr_text)
 
                 if label in error_labels:
-                    issues.append({"label": label, "reason": error_labels[label], "confidence": conf})
+                    issue_info = error_labels[label]
+                    if isinstance(issue_info, dict):
+                        issues.append({
+                            "label": label,
+                            "reason": issue_info.get("reason", ""),
+                            "suggestion": issue_info.get("suggestion", ""),
+                            "confidence": conf
+                        })
+                    else:
+        
+                        issues.append({
+                            "label": label,
+                            "reason": issue_info,
+                            "suggestion": "",
+                            "confidence": conf
+                        })
 
             if connection_results['note']:
                 issues.append({"label": "Connection Issue", "reason": connection_results['note'], "confidence": 0.6})
@@ -330,15 +372,17 @@ def extract_images_and_ocr():
             if not has_label(predictions, "Use Case Diagram Title"):
                 issues.append({
                     "label": "Missing System Name",
-                    "reason": "The diagram is missing a proper system name (e.g., 'Music Management System, usually locate in the middle top and inside the use case boundary').",
+                    "reason": "The diagram is missing a proper system name (e.g., 'Music Management System').",
                     "confidence": 0.7,
+                    "suggestion": "Add a clear system name in the middle top and inside the use case boundary box.",
                 })
 
             if not has_label(predictions, "Use_Case_Boundary"):
                 issues.append({
                     "label": "Missing Boundary",
-                    "reason": "The diagram is missing a proper use case boundary (usually represented by a rectangle system box).",
+                    "reason": "The diagram is missing a proper use case boundary.",
                     "confidence": 0.7,
+                    "suggestion": "Draw a rectangular system boundary that encloses all use cases and contains the system name.",
                 })
 # Show floating elements visually
             floating_ucs = [p for p in predictions if any(abs(p['x'] - uc['x']) < 1 and abs(p['y'] - uc['y']) < 1 for uc in predictions if uc.get('label') == 'Floating Use Case')]
