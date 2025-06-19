@@ -186,7 +186,7 @@ def extract_images_and_ocr():
     doc = fitz.open(stream=file.read(), filetype="pdf")
     extracted_results = []
 
-error_labels = {
+    error_labels = {
     "Incorrect Association Lines": {
         "reason": "Line violates UML association rule",
         "suggestion": "Ensure association lines are solid, straight without any arrow, and clearly link actors to use cases."
