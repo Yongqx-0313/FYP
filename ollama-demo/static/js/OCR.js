@@ -72,8 +72,8 @@ async function extractImagesWithOCR() {
             html += `<div class="mt-2 text-red-600"><strong>🔴 Issues Detected:</strong><ul>`;
             result.issues.forEach(issue => {
                html += `<li>
-                     • <strong>${issue.label}</strong>: ${issue.reason}(confidence: ${issue.confidence.toFixed(2)})
-                     ${issue.suggestion ? `<br/><span class="text-green-700"><b>Suggestion:</b>${issue.suggestion}</span>` : ''}
+                     • <strong>${issue.label}</strong>: ${issue.reason}
+                     ${issue.suggestion ? `<br/><span class="text-green-700"><b>Suggestion: </b>${issue.suggestion}</span>` : ''}
                   </li>`;
             });
             html += `</ul></div>`;

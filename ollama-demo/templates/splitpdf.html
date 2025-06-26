@@ -218,6 +218,12 @@ dark:to-black min-h-screen font-sans text-gray-800 dark:text-white">
     <span>Ignore whitespace mistakes</span>
   </label>
 </div>
+<div class="p-2">
+  <label class="flex items-center gap-2 dark:text-white">
+    <input type="checkbox" id="toggle-mapping-comparison" />
+    <span>Show Mapping Comparison</span>
+  </label>
+</div>
 <div class="mb-3">
   <label class="text-sm font-medium dark:text-white">Disclaimer View:</label>
   <select id="disclaimerMode" onchange="updateDisclaimer()" class="text-black ml-2 border rounded px-2 py-1 text-sm dark:bg-black dark:text-white">
@@ -357,9 +363,7 @@ function restartTutorial() {
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-async function downloadPDFPerPage() {
-  const { jsPDF } = window.jspdf;
-
+async function downloadTXTPerPage() {
   if (!lastComparisonResults || lastComparisonResults.length === 0) {
     alert("No results to export.");
     return;
@@ -368,99 +372,122 @@ async function downloadPDFPerPage() {
   const folderId = new URLSearchParams(window.location.search).get("folder_id");
 
   lastComparisonResults.forEach((res) => {
-    const doc = new jsPDF();
-    let y = 10;
+    const content = generateTextReport(res);
+    const blob = new Blob([content], { type: "text/plain" });
+    const formData = new FormData();
+    formData.append("custom-file-upload", blob, `Page_${res.page}_Report.txt`);
 
-    doc.setFont("Arial", "bold");
-    doc.setFontSize(14);
-    doc.text(`Use Case Diagram vs Document Report`, 10, y);
-    y += 10;
-
-    doc.setFontSize(12);
-    doc.setFont("Arial", "bold");
-    doc.text(`📄 Page ${res.page}`, 10, y);
-    y += 8;
-
-    doc.setFont("Arial", "normal");
-    doc.text("Paragraph:", 10, y);
-    y += 6;
-    const paraLines = doc.splitTextToSize(res.paragraph || "-", 180);
-    doc.text(paraLines, 10, y);
-    y += paraLines.length * 6;
-
-    doc.text(`Actors from Document: ${res.expected_actors.join(", ") || "-"}`, 10, y); y += 6;
-    doc.text(`Actors from Diagram: ${res.ocr_actors.join(", ") || "-"}`, 10, y); y += 6;
-
-    doc.text(`Use Cases from Document: ${res.expected_usecases.join(", ") || "-"}`, 10, y); y += 6;
-    doc.text(`Use Cases from Diagram: ${res.ocr_usecases.join(", ") || "-"}`, 10, y); y += 6;
-
-    if (res.note) {
-      doc.setTextColor(255, 0, 0);
-      const noteLines = doc.splitTextToSize(`Note: ${res.note}`, 180);
-      doc.text(noteLines, 10, y);
-      doc.setTextColor(0, 0, 0);
-      y += noteLines.length * 6;
-    }
-
-    if (res.paragraph_issues?.length || res.ocr_usecase_issues?.length) {
-      doc.setFont("Arial", "bold");
-      doc.text("Issues:", 10, y);
-      y += 6;
-      doc.setFont("Arial", "normal");
-      const issues = [...res.paragraph_issues, ...res.ocr_usecase_issues];
-      issues.forEach(issue => {
-        let line = `(${issue.source}) ${issue.type}: ${issue.word || issue.error} → Suggest: ${issue.suggestion || issue.suggestions?.join("/")}`;
-        let wrap = doc.splitTextToSize(line, 180);
-        doc.text(wrap, 10, y);
-        y += wrap.length * 6;
+    fetch(`http://127.0.0.1:5000/upload-ucd?folder_id=${folderId}`, {
+      method: "POST",
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(`✅ Report uploaded for Page ${res.page}:`, data);
+        alert(`✅ Report uploaded for Page ${res.page}`);
+      })
+      .catch((err) => {
+        console.error("❌ Failed to upload TXT report", err);
+        alert("❌ Upload failed. Check console for error.");
       });
-    }
-
-    if (res.categorized && Object.keys(res.categorized).length) {
-      doc.setFont("Arial", "bold");
-      doc.text("OCR Mapping:", 10, y);
-      y += 6;
-      doc.setFont("Arial", "normal");
-      Object.entries(res.categorized).forEach(([actor, usecases]) => {
-        doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
-        y += 6;
-      });
-    }
-
-    if (res.doc_actor_usecase_map && Object.keys(res.doc_actor_usecase_map).length) {
-      doc.setFont("Arial", "bold");
-      doc.text("Document Mapping:", 10, y);
-      y += 6;
-      doc.setFont("Arial", "normal");
-      Object.entries(res.doc_actor_usecase_map).forEach(([actor, usecases]) => {
-        doc.text(`• ${actor}: ${usecases.join(", ")}`, 10, y);
-        y += 6;
-      });
-    }
-
-    // ✅ Save as blob and upload
-    const filename = `Page_${res.page}_Report.pdf`;
-
-const blob = doc.output("blob");  // ✅ 直接同步获取 blob
-const formData = new FormData();
-formData.append("custom-file-upload", blob, filename);
-
-fetch(`http://127.0.0.1:5000/upload-ucd?folder_id=${folderId}`, {
-  method: "POST",
-  body: formData,
-})
-  .then(res => res.json())
-  .then(data => {
-    console.log(`✅ Report saved for ${filename}:`, data);
-    alert(`✅ Report uploaded for Page ${res.page}`);
-  })
-  .catch(err => {
-    console.error("❌ Failed to upload PDF report", err);
-  });
-
-
   });
 }
+
+function generateTextReport(res) {
+  const lines = [];
+
+  lines.push("📄 Use Case Diagram vs Document Report");
+  lines.push(`Page: ${res.page}`);
+  lines.push("\n🔤 Paragraph:");
+  lines.push(res.paragraph || "-");
+
+  if (res.paragraph_issues?.length) {
+    lines.push("\n✏️ Grammar/Spelling Issues:");
+    res.paragraph_issues.forEach((issue) => {
+      lines.push(
+        `- ${issue.type.toUpperCase()} Error: "${issue.word || issue.error}" → Suggest: ${
+          issue.suggestion || issue.suggestions?.join("/")
+        }`
+      );
+    });
+  }
+
+if (res.issues?.length > 0) {
+  lines.push("\n🛑 Diagram Structural Issues:");
+
+  res.issues.forEach((issue) => {
+    const label = issue.label || "Unknown Issue";
+    const confidence = (issue.confidence ?? 0).toFixed(2);
+    const reason = issue.reason || "-";
+    const suggestion = issue.suggestion || "";
+
+    lines.push(`• ${label} (${confidence})`);
+    lines.push(`  ↳ Reason: ${reason}`);
+    if (suggestion) {
+      lines.push(`  ↳ Suggestion: ${suggestion}`);
+    }
+    lines.push(""); // spacing between issues
+  });
+}
+
+
+  // Actor comparison
+  const missingActorInImg = res.expected_actors.filter(
+    (a) => !res.ocr_actors.includes(a)
+  );
+  const missingActorInDoc = res.ocr_actors.filter(
+    (a) => !res.expected_actors.includes(a)
+  );
+
+  lines.push("\n👥 Actor Comparison:");
+  if (missingActorInImg.length)
+    lines.push(`🔴 Missing in Diagram: ${missingActorInImg.join(", ")}`);
+  if (missingActorInDoc.length)
+    lines.push(`🔵 Missing in Document: ${missingActorInDoc.join(", ")}`);
+  if (!missingActorInImg.length && !missingActorInDoc.length)
+    lines.push("✅ All matched");
+
+  // Use case comparison
+  const missingUCInImg = res.expected_usecases.filter(
+    (u) => !res.ocr_usecases.includes(u)
+  );
+  const missingUCInDoc = res.ocr_usecases.filter(
+    (u) => !res.expected_usecases.includes(u)
+  );
+
+  lines.push("\n📌 Use Case Comparison:");
+  if (missingUCInImg.length)
+    lines.push(`🔴 Missing in Diagram: ${missingUCInImg.join(", ")}`);
+  if (missingUCInDoc.length)
+    lines.push(`🔵 Missing in Document: ${missingUCInDoc.join(", ")}`);
+  if (!missingUCInImg.length && !missingUCInDoc.length)
+    lines.push("✅ All matched");
+
+  // Include/Extend relation notes
+  if (res.note) {
+    lines.push("\n📎 Relationship Note:");
+    lines.push(res.note);
+  }
+
+  // Categorized OCR mapping
+  if (res.categorized && Object.keys(res.categorized).length > 0) {
+    lines.push("\n🎯 OCR Mapping (Actor → Use Cases):");
+    for (const [actor, usecases] of Object.entries(res.categorized)) {
+      lines.push(`• ${actor}: ${usecases.join(", ")}`);
+    }
+  }
+
+  // Document-based mapping
+  if (res.doc_actor_usecase_map && Object.keys(res.doc_actor_usecase_map).length > 0) {
+    lines.push("\n📘 Document Mapping (Actor → Use Cases):");
+    for (const [actor, usecases] of Object.entries(res.doc_actor_usecase_map)) {
+      lines.push(`• ${actor}: ${usecases.join(", ")}`);
+    }
+  }
+
+  return lines.join("\n");
+}
+
 
 </script>
 
@@ -492,5 +519,14 @@ document.getElementById('pdfFile').addEventListener('change', async function (ev
     alert("❌ Upload failed. Please try again.");
     console.error(err);
   }
+});
+</script>
+<script>
+document.getElementById("toggle-mapping-comparison").addEventListener("change", function () {
+  const show = this.checked;
+  const sections = document.querySelectorAll(".mapping-comparison");
+  sections.forEach(section => {
+    section.classList.toggle("hidden", !show);
+  });
 });
 </script>
