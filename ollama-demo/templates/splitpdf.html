@@ -396,7 +396,7 @@ async function downloadTXTPerPage() {
 function generateTextReport(res) {
   const lines = [];
 
-  lines.push("📄 Use Case Diagram vs Document Report");
+  lines.push("📄 Use Case Diagram Consistency Report");
   lines.push(`Page: ${res.page}`);
   lines.push("\n🔤 Paragraph:");
   lines.push(res.paragraph || "-");
@@ -499,7 +499,7 @@ document.getElementById('pdfFile').addEventListener('change', async function (ev
   const folderId = new URLSearchParams(window.location.search).get("folder_id") || "default";
 
   const formData = new FormData();
-  formData.append("custom-file-upload", file); // ✅ 名字对上 PHP 的 $_FILES
+  formData.append("custom-file-upload", file); 
 
   try {
     const res = await fetch(`http://127.0.0.1:5000/upload-ucd?folder_id=${folderId}`, {
