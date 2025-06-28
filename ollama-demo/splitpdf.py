@@ -16,6 +16,11 @@ import numpy as np
 import requests
 import math
 import sys
+from dotenv import load_dotenv
+
+# Load API key from .env
+load_dotenv()
+api_key = os.getenv("ROBOFLOW_API_KEY")
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Path to tesseract executable (if not in PATH)
@@ -259,7 +264,7 @@ def extract_images_and_ocr():
 
                 response = requests.post(
                     "https://serverless.roboflow.com/use-case-diagram-ocaut/5",
-                    params={"api_key": "erhUiKryC5pLrlT5t0as"},
+                    params={"api_key": api_key},
                     data=img_base64,
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
                     timeout=20,
