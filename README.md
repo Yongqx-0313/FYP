@@ -163,5 +163,6 @@ This project is for academic purposes and may be adapted for commercial use with
 
 > ⚠️ Disclaimer: This tool is an aid, not a replacement for human judgment. Always manually verify results.
 
-👨‍💻 Developer
+## 👨‍💻 Developer
+
 Yong Qi Xiang Bachelor of Computer Science (Hons) Software Engineering Faculty of Computing and Informatics, Multimedia University
