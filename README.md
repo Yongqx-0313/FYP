@@ -166,3 +166,7 @@ This project is for academic purposes and may be adapted for commercial use with
 ## 👨‍💻 Developer
 
 Yong Qi Xiang Bachelor of Computer Science (Hons) Software Engineering Faculty of Computing and Informatics, Multimedia University
+
+## Dependecies Maintenance & Update
+
+npm audit fix
